@@ -1,8 +1,29 @@
 version: "3.9"
+volumes:
+  haproxy_data: {}
+
+networks:
+  haproxy-net:
+    external: false
+
 services:
+  haproxy:
+    image: haproxy:2.3
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    networks:
+      - haproxy-net
+    ports:
+      - 8080:80
+
   web:
     build: .
     ports:
       - "5000:5000"
+    networks:
+      - haproxy-net
+
   redis:
     image: "redis:alpine"
+    networks:
+      - haproxy-net
