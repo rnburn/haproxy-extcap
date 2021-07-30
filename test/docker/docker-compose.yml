@@ -11,6 +11,7 @@ services:
     image: haproxy:2.3
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./iprep.conf:/usr/local/etc/haproxy/iprep.conf
     networks:
       - haproxy-net
     ports:
