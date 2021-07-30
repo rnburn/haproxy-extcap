@@ -16,6 +16,16 @@ services:
     ports:
       - 8080:80
 
+  spoa:
+    image: golang:buster
+    volumes:
+      - ./spoa:/spoa
+    networks:
+      - haproxy-net
+    working_dir: /spoa
+    command:
+      go run main.go
+
   web:
     build: .
     ports:
