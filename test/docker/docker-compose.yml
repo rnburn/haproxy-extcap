@@ -9,6 +9,8 @@ networks:
 services:
   haproxy:
     image: haproxy:2.3
+    depends_on:
+      - spoa
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ./iprep.conf:/usr/local/etc/haproxy/iprep.conf

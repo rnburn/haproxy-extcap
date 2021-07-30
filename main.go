@@ -1,62 +1,60 @@
 package main
 
 import (
-	"fmt"
-	"net"
-
+	"github.com/negasus/haproxy-spoe-go/action"
+	"github.com/negasus/haproxy-spoe-go/agent"
+	"github.com/negasus/haproxy-spoe-go/request"
 	"log"
-
-	spoe "github.com/criteo/haproxy-spoe-go"
+	"math/rand"
+	"net"
+	"os"
 )
 
-func getReputation(ip net.IP) (float64, error) {
-	// implement IP reputation code here
-	return 1.0, nil
-}
-
 func main() {
-	agent := spoe.New(func(messages *spoe.MessageIterator) ([]spoe.Action, error) {
-		reputation := 0.0
 
-		for messages.Next() {
-			msg := messages.Message
+	log.Print("listen 9000")
 
-			if msg.Name != "ip-rep" {
-				continue
-			}
+	listener, err := net.Listen("tcp4", ":9000")
+	if err != nil {
+		log.Printf("error create listener, %v", err)
+		os.Exit(1)
+	}
+	defer listener.Close()
 
-			var ip net.IP
-			for msg.Args.Next() {
-				arg := msg.Args.Arg
+	a := agent.New(handler)
 
-				if arg.Name == "ip" {
-					var ok bool
-					ip, ok = arg.Value.(net.IP)
-					if !ok {
-						return nil, fmt.Errorf("spoe handler: expected ip in message, got %+v", ip)
-					}
-				}
-			}
-
-			var err error
-			reputation, err = getReputation(ip)
-			if err != nil {
-				return nil, fmt.Errorf("spoe handler: error processing request: %s", err)
-			}
-		}
-
-		return []spoe.Action{
-			spoe.ActionSetVar{
-				Name:  "reputation",
-				Scope: spoe.VarScopeSession,
-				Value: reputation,
-			},
-		}, nil
-	})
-
-	if err := agent.ListenAndServe(":9000"); err != nil {
-		log.Fatal(err)
+	if err := a.Serve(listener); err != nil {
+		log.Printf("error agent serve: %+v\n", err)
 	}
 }
 
+func handler(req *request.Request) {
 
+	log.Printf("handle request EngineID: '%s', StreamID: '%d', FrameID: '%d' with %d messages\n", req.EngineID, req.StreamID, req.FrameID, req.Messages.Len())
+
+	messageName := "get-ip-reputation"
+
+	mes, err := req.Messages.GetByName(messageName)
+	if err != nil {
+		log.Printf("message %s not found: %v", messageName, err)
+		return
+	}
+
+	ipValue, ok := mes.KV.Get("ip")
+	if !ok {
+		log.Printf("var 'ip' not found in message")
+		return
+	}
+
+	ip, ok := ipValue.(net.IP)
+	if !ok {
+		log.Printf("var 'ip' has wrong type. expect IP addr")
+		return
+	}
+
+	ipScore := rand.Intn(100)
+
+	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
+
+	req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
+}
