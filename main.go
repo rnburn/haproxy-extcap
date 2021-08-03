@@ -52,6 +52,18 @@ func handler(req *request.Request) {
 		return
 	}
 
+  bodyValue, ok := mes.KV.Get("body")
+  if !ok {
+		log.Printf("var 'body' not found in message")
+		return
+  }
+  body, ok := bodyValue.([]byte)
+	if !ok {
+		log.Printf("var 'body' has wrong type. expect IP addr")
+		return
+	}
+  log.Printf("body length %d\n", len(body))
+
 	ipScore := rand.Intn(100)
 
 	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
