@@ -32,7 +32,7 @@ func handler(req *request.Request) {
 
 	log.Printf("handle request EngineID: '%s', StreamID: '%d', FrameID: '%d' with %d messages\n", req.EngineID, req.StreamID, req.FrameID, req.Messages.Len())
 
-	messageName := "get-ip-reputation"
+	messageName := "check-client-ip"
 
 	mes, err := req.Messages.GetByName(messageName)
 	if err != nil {
