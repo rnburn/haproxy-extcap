@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-func extractHdrs(buf []byte) {
+func extractHdrs(prefix string, buf []byte) {
   for {
     keyLen, i := varint.Uvarint(buf)
     buf = buf[i:]
@@ -25,7 +25,7 @@ func extractHdrs(buf []byte) {
     if keyLen == 0 && valLen == 0 {
       return
     }
-    log.Printf("cap-hdr %s: %s\n", key, val)
+    log.Printf("cap-hdr-%s %s: %s\n", prefix, key, val)
   }
 }
 
@@ -98,7 +98,7 @@ func handleRequestMessage(req *request.Request, msg *message.Message) {
 		log.Printf("var 'hdrs' has wrong type. expect IP addr")
 		return
 	}
-  extractHdrs(hdrs)
+  extractHdrs("request", hdrs)
 
 	ipScore := rand.Intn(100)
 
@@ -120,4 +120,16 @@ func handleResponseMessage(req *request.Request, msg *message.Message) {
 	}
   log.Printf("response body length %d\n", len(body))
   log.Printf("body: %s\n", string(body))
+
+  hdrsValue, ok := msg.KV.Get("hdrs")
+  if !ok {
+		log.Printf("var 'hdrs' not found in message")
+		return
+  }
+  hdrs, ok := hdrsValue.([]byte)
+	if !ok {
+		log.Printf("var 'hdrs' has wrong type. expect IP addr")
+		return
+	}
+  extractHdrs("response", hdrs)
 }
