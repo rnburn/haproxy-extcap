@@ -105,6 +105,7 @@ func handleRequestMessage(req *request.Request, msg *message.Message) {
 	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
 
 	req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
+	req.Actions.SetVar(action.ScopeSession, "trace_context", "abc-123")
 }
 
 func handleResponseMessage(req *request.Request, msg *message.Message) {
@@ -132,4 +133,17 @@ func handleResponseMessage(req *request.Request, msg *message.Message) {
 		return
 	}
   extractHdrs("response", hdrs)
+
+
+  tracectxValue, ok := msg.KV.Get("trace_context")
+  if !ok {
+		log.Printf("var 'trace_context' not found in message")
+		return
+  }
+  tracectx, ok := tracectxValue.(string)
+	if !ok {
+		log.Printf("var 'trace_context' has wrong type. expect IP addr")
+		return
+	}
+  log.Printf("trace-context: %s", tracectx)
 }
