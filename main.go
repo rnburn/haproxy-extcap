@@ -87,7 +87,12 @@ func handleRequestMessage(req *request.Request, msg *message.Message) {
 	}
   extractHdrs("request", hdrs)
 
+  // Inspect headers, extract trace-context if present and generate
+  // a context for the ha proxy span; also, create the extcap request span
 	req.Actions.SetVar(action.ScopeSession, "trace_context", "abc-123")
+
+  // Mark whether the request should be blocked or not
+	req.Actions.SetVar(action.ScopeSession, "block_request", false)
 }
 
 func handleResponseMessage(req *request.Request, msg *message.Message) {
@@ -115,7 +120,6 @@ func handleResponseMessage(req *request.Request, msg *message.Message) {
 		return
 	}
   extractHdrs("response", hdrs)
-
 
   tracectxValue, ok := msg.KV.Get("trace_context")
   if !ok {
