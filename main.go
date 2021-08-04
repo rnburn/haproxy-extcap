@@ -7,7 +7,6 @@ import (
 	"github.com/negasus/haproxy-spoe-go/message"
   "github.com/negasus/haproxy-spoe-go/varint"
 	"log"
-	"math/rand"
 	"net"
 	"os"
 )
@@ -64,18 +63,6 @@ func handler(req *request.Request) {
 }
 
 func handleRequestMessage(req *request.Request, msg *message.Message) {
-	ipValue, ok := msg.KV.Get("ip")
-	if !ok {
-		log.Printf("var 'ip' not found in message")
-		return
-	}
-
-	ip, ok := ipValue.(net.IP)
-	if !ok {
-		log.Printf("var 'ip' has wrong type. expect IP addr")
-		return
-	}
-
   bodyValue, ok := msg.KV.Get("body")
   if !ok {
 		log.Printf("var 'body' not found in message")
@@ -100,11 +87,6 @@ func handleRequestMessage(req *request.Request, msg *message.Message) {
 	}
   extractHdrs("request", hdrs)
 
-	ipScore := rand.Intn(100)
-
-	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
-
-	req.Actions.SetVar(action.ScopeSession, "ip_score", ipScore)
 	req.Actions.SetVar(action.ScopeSession, "trace_context", "abc-123")
 }
 
