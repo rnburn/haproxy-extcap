@@ -13,7 +13,7 @@ services:
       - spoa
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./iprep.conf:/usr/local/etc/haproxy/iprep.conf
+      - ./extcap.conf:/usr/local/etc/haproxy/extcap.conf
     networks:
       - haproxy-net
     ports:
