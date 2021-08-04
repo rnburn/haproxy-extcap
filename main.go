@@ -5,11 +5,29 @@ import (
 	"github.com/negasus/haproxy-spoe-go/agent"
 	"github.com/negasus/haproxy-spoe-go/request"
 	"github.com/negasus/haproxy-spoe-go/message"
+  "github.com/negasus/haproxy-spoe-go/varint"
 	"log"
 	"math/rand"
 	"net"
 	"os"
 )
+
+func extractHdrs(buf []byte) {
+  for {
+    keyLen, i := varint.Uvarint(buf)
+    buf = buf[i:]
+    key := string(buf[:keyLen])
+    buf = buf[keyLen:]
+    valLen, i := varint.Uvarint(buf)
+    buf = buf[i:]
+    val := string(buf[:valLen])
+    buf = buf[valLen:]
+    if keyLen == 0 && valLen == 0 {
+      return
+    }
+    log.Printf("cap-hdr %s: %s\n", key, val)
+  }
+}
 
 func main() {
 
@@ -70,6 +88,18 @@ func handleRequestMessage(req *request.Request, msg *message.Message) {
 	}
   log.Printf("request body length %d\n", len(body))
 
+  hdrsValue, ok := msg.KV.Get("hdrs")
+  if !ok {
+		log.Printf("var 'hdrs' not found in message")
+		return
+  }
+  hdrs, ok := hdrsValue.([]byte)
+	if !ok {
+		log.Printf("var 'hdrs' has wrong type. expect IP addr")
+		return
+	}
+  extractHdrs(hdrs)
+
 	ipScore := rand.Intn(100)
 
 	log.Printf("IP: %s, send score '%d'", ip.String(), ipScore)
@@ -89,4 +119,5 @@ func handleResponseMessage(req *request.Request, msg *message.Message) {
 		return
 	}
   log.Printf("response body length %d\n", len(body))
+  log.Printf("body: %s\n", string(body))
 }
