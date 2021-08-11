@@ -56,6 +56,8 @@ func handler(req *request.Request) {
       handleRequestMessage(req, msg)
     case "extcap-response":
       handleResponseMessage(req, msg)
+    case "extcap-res":
+      handleResMessage(req, msg)
     default:
       log.Printf("unkown message %s", msg.Name)
     }
@@ -132,4 +134,19 @@ func handleResponseMessage(req *request.Request, msg *message.Message) {
 		return
 	}
   log.Printf("trace-context: %s", tracectx)
+}
+
+func handleResMessage(req *request.Request, msg *message.Message) {
+  bodyValue, ok := msg.KV.Get("body")
+  if !ok {
+		log.Printf("var 'body' not found in message")
+		return
+  }
+  body, ok := bodyValue.([]byte)
+	if !ok {
+		log.Printf("var 'body' has wrong type. expect IP addr")
+		return
+	}
+  log.Printf("res body length %d\n", len(body))
+  log.Printf("res body: %s\n", string(body))
 }

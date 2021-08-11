@@ -12,6 +12,7 @@ services:
     depends_on:
       - spoa
     volumes:
+      - ./response.lua:/response.lua
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ./extcap.conf:/usr/local/etc/haproxy/extcap.conf
     networks:
